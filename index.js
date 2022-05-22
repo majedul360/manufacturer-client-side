@@ -25,6 +25,7 @@ const client = new MongoClient(uri, {
 
 const productsCollection = client.db("woodHouse").collection("products");
 const reviewsCollection = client.db("woodHouse").collection("reviews");
+const servicesCollection = client.db("woodHouse").collection("services");
 const run = async () => {
   try {
     await client.connect();
@@ -37,6 +38,12 @@ const run = async () => {
     // all reviews loaded
     app.get("/reviews", async (req, res) => {
       const reviews = await reviewsCollection.find({}).toArray();
+      res.send(reviews);
+    });
+
+    // all services loaded
+    app.get("/services", async (req, res) => {
+      const reviews = await servicesCollection.find({}).toArray();
       res.send(reviews);
     });
   } finally {
