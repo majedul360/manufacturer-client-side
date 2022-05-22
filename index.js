@@ -22,7 +22,7 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
-
+// products all data loaded
 const productsCollection = client.db("woodHouse").collection("products");
 const run = async () => {
   try {
