@@ -22,16 +22,25 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
-// products all data loaded
+
 const productsCollection = client.db("woodHouse").collection("products");
+const reviewsCollection = client.db("woodHouse").collection("reviews");
 const run = async () => {
   try {
     await client.connect();
+    // all products loaded
     app.get("/products", async (req, res) => {
       const products = await productsCollection.find({}).toArray();
       res.send(products);
     });
-  } catch {}
+
+    // all reviews loaded
+    app.get("/reviews", async (req, res) => {
+      const reviews = await reviewsCollection.find({}).toArray();
+      res.send(reviews);
+    });
+  } finally {
+  }
 };
 run().catch(console.dir);
 
