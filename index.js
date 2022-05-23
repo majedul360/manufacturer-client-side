@@ -26,6 +26,7 @@ const client = new MongoClient(uri, {
 const productsCollection = client.db("woodHouse").collection("products");
 const reviewsCollection = client.db("woodHouse").collection("reviews");
 const servicesCollection = client.db("woodHouse").collection("services");
+const purchaseCollection = client.db("woodHouse").collection("purchase");
 const run = async () => {
   try {
     await client.connect();
@@ -33,6 +34,14 @@ const run = async () => {
     app.get("/products", async (req, res) => {
       const products = await productsCollection.find({}).toArray();
       res.send(products);
+    });
+
+    // loaded single product by id
+    app.get("/product/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const product = await productsCollection.findOne(query);
+      res.send(product);
     });
 
     // all reviews loaded
@@ -47,12 +56,11 @@ const run = async () => {
       res.send(reviews);
     });
 
-    // loaded single product by id
-    app.get("/product/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: ObjectId(id) };
-      const product = await productsCollection.findOne(query);
-      res.send(product);
+    // Purchase products
+    app.post("/purchase", async (req, res) => {
+      const purchaseProduct = req.body;
+      const result = await purchaseCollection.insertOne(purchaseProduct);
+      res.send(result);
     });
   } finally {
   }
