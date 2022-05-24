@@ -27,6 +27,7 @@ const productsCollection = client.db("woodHouse").collection("products");
 const reviewsCollection = client.db("woodHouse").collection("reviews");
 const servicesCollection = client.db("woodHouse").collection("services");
 const purchaseCollection = client.db("woodHouse").collection("purchase");
+const profileCollection = client.db("woodHouse").collection("profile");
 const run = async () => {
   try {
     await client.connect();
@@ -48,6 +49,13 @@ const run = async () => {
     app.get("/reviews", async (req, res) => {
       const reviews = await reviewsCollection.find({}).toArray();
       res.send(reviews);
+    });
+
+    // Upload reviews
+    app.post("/reviews", async (req, res) => {
+      const review = req.body;
+      const uploadReview = await reviewsCollection.insertOne(review);
+      res.send(uploadReview);
     });
 
     // all services loaded
@@ -76,6 +84,25 @@ const run = async () => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await purchaseCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // upload my profile data
+    app.post("/myProfile", async (req, res) => {
+      const profileData = req.body;
+      const result = await profileCollection.insertOne(profileData);
+      res.send(result);
+    });
+    // update profile data
+    app.patch("/updateProfile/:email", async (req, res) => {
+      const email = req.params.email;
+      const filter = { email };
+      const data = req.body;
+      const updateDoc = {
+        $set: data,
+      };
+
+      const result = await profileCollection.updateOne(filter, updateDoc);
       res.send(result);
     });
   } finally {
