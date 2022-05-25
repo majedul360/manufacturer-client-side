@@ -111,15 +111,20 @@ const run = async () => {
       res.send(result);
     });
     // update profile data
-    app.patch("/updateProfile/:email", async (req, res) => {
+    app.put("/updateProfile/:email", async (req, res) => {
       const email = req.params.email;
       const filter = { email };
       const data = req.body;
+      const options = { upsert: true };
       const updateDoc = {
         $set: data,
       };
 
-      const result = await profileCollection.updateOne(filter, updateDoc);
+      const result = await profileCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
       res.send(result);
     });
 
@@ -144,10 +149,46 @@ const run = async () => {
       res.send({ result, accessToken });
     });
 
+    // verify admin function
+    const verifyADN = async (req, res, next) => {
+      const decodedEmail = req.decoded.email;
+      const findUserByEmail = await usersCollection.findOne({
+        email: decodedEmail,
+      });
+      if (findUserByEmail.role === "admin") {
+        next();
+      } else {
+        res.status(403).send({ message: "Forbidden access" });
+      }
+    };
+
     // load all users
-    app.get("/users", verifyJWT, async (req, res) => {
+    app.get("/users", verifyJWT, verifyADN, async (req, res) => {
       const users = await usersCollection.find({}).toArray();
       res.send(users);
+    });
+
+    // make users admin
+    app.patch("/users/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const filter = { email };
+      const updateDoc = {
+        $set: {
+          role: "admin",
+        },
+      };
+
+      const result = await usersCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+    // load users role  admin or not admin
+    app.get("/admin/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const findUser = await usersCollection.findOne({ email });
+      const admin = findUser.role === "admin";
+
+      res.send(admin);
     });
   } finally {
   }
