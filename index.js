@@ -5,6 +5,7 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
 const jwt = require("jsonwebtoken");
+const stripe = require("stripe")(`${process.env.STRIPE_CLIENT_SECRET_KEY}`);
 
 // middleware
 app.use(cors());
@@ -88,7 +89,7 @@ const run = async () => {
     });
 
     // Upload reviews
-    app.post("/reviews", async (req, res) => {
+    app.post("/reviews", verifyJWT, async (req, res) => {
       const review = req.body;
       const uploadReview = await reviewsCollection.insertOne(review);
       res.send(uploadReview);
@@ -108,11 +109,34 @@ const run = async () => {
     });
 
     // Load all purchases products as orders
-    app.get("/orders/:email", async (req, res) => {
+    app.get("/orders/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
       const query = { email };
       const result = await purchaseCollection.find(query).toArray();
       res.send(result);
+    });
+
+    // load individual order by id
+    app.get("/order/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await purchaseCollection.findOne(query);
+      res.send(result);
+    });
+
+    // update order info by transaction id
+    app.patch("/order/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const iteam = req.body;
+      const filter = { _id: ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          paid: true,
+          transactionId: iteam.transactionId,
+        },
+      };
+      const result = await purchaseCollection.updateOne(filter, updateDoc);
+      res.send(updateDoc);
     });
 
     // delete purchase or ordered product
@@ -195,6 +219,24 @@ const run = async () => {
       const admin = findUser.role === "admin";
 
       res.send(admin);
+    });
+
+    // payment intent api
+    app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+      const iteam = req.body;
+      const price = parseInt(iteam.price) * 100;
+      const quantity = parseInt(iteam.quantity);
+      const amount = price * quantity;
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
     });
   } finally {
   }
