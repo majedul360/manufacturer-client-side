@@ -4,6 +4,7 @@ const cors = require("cors");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
+const jwt = require("jsonwebtoken");
 
 // middleware
 app.use(cors());
@@ -14,8 +15,23 @@ app.get("/", (req, res) => {
   res.send("Welcome to woodHouse");
 });
 
-//connection with mongoDB
+const verifyJWT = (req, res, next) => {
+  const headersToken = req.headers.authorization;
+  if (!headersToken) {
+    return res.status(401).send({ message: "Unauthorized access" });
+  }
+  const token = headersToken.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_KEY, (err, decoded) => {
+    if (err) {
+      return res.status(403).send({ message: "Forbidden access" });
+    } else {
+      req.decoded = decoded;
+      next();
+    }
+  });
+};
 
+//connection with mongoDB
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.eqtr9.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
@@ -28,6 +44,7 @@ const reviewsCollection = client.db("woodHouse").collection("reviews");
 const servicesCollection = client.db("woodHouse").collection("services");
 const purchaseCollection = client.db("woodHouse").collection("purchase");
 const profileCollection = client.db("woodHouse").collection("profile");
+const usersCollection = client.db("woodHouse").collection("users");
 const run = async () => {
   try {
     await client.connect();
@@ -104,6 +121,33 @@ const run = async () => {
 
       const result = await profileCollection.updateOne(filter, updateDoc);
       res.send(result);
+    });
+
+    // Create users api
+    app.put("/users/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const filter = { email };
+      const options = { upsert: true };
+
+      const updateDoc = {
+        $set: user,
+      };
+      const result = await usersCollection.updateOne(
+        filter,
+        updateDoc,
+        options
+      );
+      const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_KEY, {
+        expiresIn: "1d",
+      });
+      res.send({ result, accessToken });
+    });
+
+    // load all users
+    app.get("/users", verifyJWT, async (req, res) => {
+      const users = await usersCollection.find({}).toArray();
+      res.send(users);
     });
   } finally {
   }
