@@ -48,6 +48,18 @@ const usersCollection = client.db("woodHouse").collection("users");
 const run = async () => {
   try {
     await client.connect();
+    // verify admin function
+    const verifyADN = async (req, res, next) => {
+      const decodedEmail = req.decoded.email;
+      const findUserByEmail = await usersCollection.findOne({
+        email: decodedEmail,
+      });
+      if (findUserByEmail.role === "admin") {
+        next();
+      } else {
+        res.status(403).send({ message: "Forbidden access" });
+      }
+    };
     // all products loaded
     app.get("/products", async (req, res) => {
       const products = await productsCollection.find({}).toArray();
@@ -60,6 +72,13 @@ const run = async () => {
       const query = { _id: ObjectId(id) };
       const product = await productsCollection.findOne(query);
       res.send(product);
+    });
+
+    // add products by admin
+    app.post("/products", verifyJWT, verifyADN, async (req, res) => {
+      const product = req.body;
+      const result = await productsCollection.insertOne(product);
+      res.send(result);
     });
 
     // all reviews loaded
@@ -148,19 +167,6 @@ const run = async () => {
       });
       res.send({ result, accessToken });
     });
-
-    // verify admin function
-    const verifyADN = async (req, res, next) => {
-      const decodedEmail = req.decoded.email;
-      const findUserByEmail = await usersCollection.findOne({
-        email: decodedEmail,
-      });
-      if (findUserByEmail.role === "admin") {
-        next();
-      } else {
-        res.status(403).send({ message: "Forbidden access" });
-      }
-    };
 
     // load all users
     app.get("/users", verifyJWT, verifyADN, async (req, res) => {
