@@ -108,11 +108,17 @@ const run = async () => {
       res.send(result);
     });
 
-    // Load all purchases products as orders
+    // Load all purchases products or orders products as a user by user email
     app.get("/orders/:email", verifyJWT, async (req, res) => {
       const email = req.params.email;
       const query = { email };
       const result = await purchaseCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // load all order or purchases prouducts as a admin
+    app.get("/orders", verifyJWT, verifyADN, async (req, res) => {
+      const result = await purchaseCollection.find({}).toArray();
       res.send(result);
     });
 
@@ -124,7 +130,7 @@ const run = async () => {
       res.send(result);
     });
 
-    // update order info by transaction id
+    // update order info by transaction id after payment complete
     app.patch("/order/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       const iteam = req.body;
@@ -133,6 +139,19 @@ const run = async () => {
         $set: {
           paid: true,
           transactionId: iteam.transactionId,
+        },
+      };
+      const result = await purchaseCollection.updateOne(filter, updateDoc);
+      res.send(updateDoc);
+    });
+    // update order info by status after change order status
+    app.patch("/changeStatus/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const iteam = req.body;
+      const filter = { _id: ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: true,
         },
       };
       const result = await purchaseCollection.updateOne(filter, updateDoc);
