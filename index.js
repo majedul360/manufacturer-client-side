@@ -248,6 +248,15 @@ const run = async () => {
       res.send(admin);
     });
 
+    // load users role  admin or not admin
+    app.get("/simpleUser/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const findUser = await usersCollection.findOne({ email });
+      const simpleUser = findUser.role !== "admin";
+
+      res.send(simpleUser);
+    });
+
     // payment intent api
     app.post("/create-payment-intent", verifyJWT, async (req, res) => {
       const iteam = req.body;
