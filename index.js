@@ -67,6 +67,14 @@ const run = async () => {
       res.send(products);
     });
 
+    // delete products by admin with product id
+    app.delete("/product/:id", verifyJWT, verifyADN, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await productsCollection.deleteOne(query);
+      res.send(result);
+    });
+
     // loaded single product by id
     app.get("/product/:id", async (req, res) => {
       const id = req.params.id;
