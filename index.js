@@ -253,10 +253,9 @@ const run = async () => {
       const iteam = req.body;
       const price = parseInt(iteam.price) * 100;
       const quantity = parseInt(iteam.quantity);
-      const amount = price * quantity;
-
+      const totalAmount = price * quantity;
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: amount,
+        amount: totalAmount,
         currency: "usd",
         payment_method_types: ["card"],
       });
