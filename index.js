@@ -5,7 +5,9 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
 const jwt = require("jsonwebtoken");
-const stripe = require("stripe")(`${process.env.PAYMENT_SECRET_KEY}`);
+const stripe = require("stripe")(
+  "pk_test_51L0lILJNGKoLywBjp8ooTKXefeJR3jAchauqV3hNucQqldxxJgMMgMSPA6oQuRnyZ5Fl0l2TNHQ3ACzSHmbJS3yy00KApTWBSR"
+);
 
 // middleware
 app.use(cors());
