@@ -6,7 +6,7 @@ const app = express();
 const port = process.env.PORT || 5000;
 const jwt = require("jsonwebtoken");
 const stripe = require("stripe")(
-  "pk_test_51L0lILJNGKoLywBjp8ooTKXefeJR3jAchauqV3hNucQqldxxJgMMgMSPA6oQuRnyZ5Fl0l2TNHQ3ACzSHmbJS3yy00KApTWBSR"
+  "sk_test_51L0lILJNGKoLywBjWMLUkNBqiL9zTLUa6IgiWjkkHqKgUakuoUw8hf9kLLC78oa75YO2dbKBa03V2uHFTNUdQStX00ePdJ5vC8"
 );
 
 // middleware
@@ -35,7 +35,7 @@ const verifyJWT = (req, res, next) => {
 };
 
 //connection with mongoDB
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.eqtr9.mongodb.net/?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.u9uw72d.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -50,7 +50,7 @@ const profileCollection = client.db("woodHouse").collection("profile");
 const usersCollection = client.db("woodHouse").collection("users");
 const run = async () => {
   try {
-    await client.connect(console.log("connection successful"));
+    await client.connect(console.log("hurrah!new connection successful"));
     // verify admin function
     const verifyADN = async (req, res, next) => {
       const decodedEmail = req.decoded.email;
@@ -218,6 +218,7 @@ const run = async () => {
       const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_KEY, {
         expiresIn: "1d",
       });
+      console.log(accessToken);
       res.send({ result, accessToken });
     });
 
