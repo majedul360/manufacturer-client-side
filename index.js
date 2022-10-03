@@ -50,7 +50,7 @@ const profileCollection = client.db("woodHouse").collection("profile");
 const usersCollection = client.db("woodHouse").collection("users");
 const run = async () => {
   try {
-    await client.connect();
+    await client.connect(console.log("connection successful"));
     // verify admin function
     const verifyADN = async (req, res, next) => {
       const decodedEmail = req.decoded.email;
